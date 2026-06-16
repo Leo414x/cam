@@ -75,6 +75,15 @@ git push
 Xcode 26 / iOS 17 SDK), launches on simulator without crashing, UI matches the
 intended Leica-minimal layout.
 
+**Spec coverage (both source specs fully integrated as of 2026-06-16):**
+- The original MVP build prompt — all 16 source files in the prescribed
+  structure exist and are implemented.
+- `leica-color-params-for-cc.md` — `generateLeicaLUT`, the 8-band `HSLShiftTable`,
+  all four spatial param structs (`MicroContrast`/`Grain`/`Vignette`/`Halation`),
+  the helper math, the 5 presets, and the documented pipeline order are all in.
+There is no outstanding spec work. Remaining items below are intentional
+MVP-scope decisions, not unimplemented spec content.
+
 Implemented:
 - Camera: `AVCaptureSession` (`.photo`, back wide-angle), live preview via
   `AVCaptureVideoDataOutput` → Core Image → Metal, photo capture via
