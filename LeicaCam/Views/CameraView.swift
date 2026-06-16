@@ -22,15 +22,12 @@ struct CameraView: View {
             camera.start()
         }
         .onDisappear { camera.stop() }
-        .fullScreenCover(item: Binding(
-            get: { camera.capturedImage.map { CapturedPhoto(image: $0, original: camera.capturedOriginal) } },
-            set: { if $0 == nil { camera.capturedImage = nil; camera.capturedOriginal = nil } }
-        )) { photo in
+        .fullScreenCover(item: $camera.captured) { photo in
             ReviewView(
                 processed: photo.image,
                 original: photo.original,
                 onSave: { image in camera.save(image: image) { _ in } },
-                onDiscard: { camera.capturedImage = nil; camera.capturedOriginal = nil }
+                onDiscard: { camera.captured = nil }
             )
         }
     }
@@ -159,14 +156,6 @@ private struct ShutterButton: View {
                 .onEnded { _ in pressed = false }
         )
     }
-}
-
-// MARK: - Wrapper for fullScreenCover(item:)
-
-private struct CapturedPhoto: Identifiable {
-    let id = UUID()
-    let image: UIImage
-    let original: UIImage?
 }
 
 // MARK: - State screens

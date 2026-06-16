@@ -3,6 +3,14 @@ import CoreImage
 import Photos
 import UIKit
 
+/// A captured photo ready for review. The `id` is assigned once at capture so
+/// it stays stable across re-renders (see `CameraService.captured`).
+struct CapturedPhoto: Identifiable {
+    let id = UUID()
+    let image: UIImage
+    let original: UIImage?
+}
+
 /// Central hub for the camera. Owns the `AVCaptureSession`, streams processed
 /// preview frames to a `MetalRenderer`, and drives photo capture through the
 /// `ImagePipeline`. Published properties drive the SwiftUI viewfinder.
@@ -16,8 +24,10 @@ final class CameraService: NSObject, ObservableObject {
     @Published var exposureBias: Float = 0.0          // EV, -3...3
     @Published var iso: Float = 0
     @Published var focusIndicator: CGPoint? = nil      // normalized view point
-    @Published var capturedImage: UIImage? = nil       // non-nil => show review
-    @Published var capturedOriginal: UIImage? = nil    // unprocessed, for compare
+    /// Non-nil => present the review screen. Its `id` is created once per
+    /// capture so SwiftUI's `fullScreenCover(item:)` keeps a stable identity
+    /// across the frequent `@Published` updates (ISO, flash) the camera emits.
+    @Published var captured: CapturedPhoto? = nil
     @Published var lastThumbnail: UIImage? = nil
     @Published var flashOpacity: Double = 0            // shutter flash overlay
     @Published var showGrid: Bool = false
@@ -201,8 +211,7 @@ final class CameraService: NSObject, ObservableObject {
                     DispatchQueue.main.async {
                         switch result {
                         case .success(let image, let original):
-                            self.capturedImage = image
-                            self.capturedOriginal = original
+                            self.captured = CapturedPhoto(image: image, original: original)
                             self.lastThumbnail = image
                         case .failure(let message):
                             self.state = .failed(message)
