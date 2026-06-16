@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+
+# Xcode / build artifacts
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# XcodeGen generates the project from project.yml — do NOT commit it.
+# On a fresh machine: `xcodegen generate`
+*.xcodeproj
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods / Carthage (unused, but ignore by default)
+Pods/
+Carthage/Build/
+
+# Misc
+*.log
