@@ -1,29 +1,46 @@
 import CoreImage
 import Foundation
 
-/// A "film style" preset. Bundles a procedurally-generated 3D LUT together with
-/// the post-processing parameters that define the look.
+/// A complete "film style" preset. Carries every parameter the pipeline needs:
+/// the data that is baked into the procedural 3D LUT (calibration, HSL shifts,
+/// saturation, split toning, tone curve, monochrome) plus the spatial filter
+/// parameters that run after the LUT (`LeicaFilters`).
 struct LeicaStyle: Identifiable, Equatable {
     let id: String
-    let name: String        // short internal name
-    let displayName: String // shown in the UI pill
+    let name: String          // short label (used in the picker)
+    let displayName: String   // full name
 
-    // Color grading -------------------------------------------------------
-    /// Lazily-built procedural LUT for this style. Built once and cached.
-    let lutKind: LUTFilter.Kind
+    // LUT generation -----------------------------------------------------
+    /// Per-band HSL shifts (8 Lightroom-style bands). Empty for monochrome.
+    let hslShifts: [(hueShift: Float, satMult: Float, lumOffset: Float)]
+    let globalSaturation: Float       // multiplier (1.0 = no change)
+    let calibrationR: Float           // red primary shift
+    let calibrationG: Float           // green primary shift
+    let calibrationB: Float           // blue primary shift
 
-    // Post-processing parameters -----------------------------------------
-    let microContrastAmount: Float   // 0...1   (Clarity / unsharp intensity)
-    let grainAmount: Float           // 0...1
-    let vignetteIntensity: Float     // 0...1
-    let highlightWarmth: Float       // 0...1   split-tone highlight strength
-    let shadowCoolness: Float        // 0...1   split-tone shadow strength
-    let highlightRolloff: Float      // 0...1   how much to compress highlights
+    // Split toning -------------------------------------------------------
+    let highlightTintHue: Float       // 0...1 hue wheel
+    let highlightTintSat: Float       // 0...1
+    let highlightTintStrength: Float  // 0...1
+    let shadowTintHue: Float
+    let shadowTintSat: Float
+    let shadowTintStrength: Float
 
-    // Monochrome ----------------------------------------------------------
+    // Tone curve (baked into LUT) ----------------------------------------
+    let toneCurvePoints: [(Float, Float)]
+
+    // Spatial filters (run after the LUT) --------------------------------
+    let microContrast: MicroContrastParams
+    let grain: GrainParams
+    let vignette: VignetteParams
+    let halation: HalationParams
+
+    // White balance ------------------------------------------------------
+    let whiteBalanceShiftKelvin: Float  // added to auto WB (warm > 0)
+
+    // Monochrome ---------------------------------------------------------
     let isMonochrome: Bool
-    /// Optional tint applied to a B&W conversion (e.g. selenium / sepia).
-    let monochromeTint: CIColor?
+    let monochromeWeights: (r: Float, g: Float, b: Float)?
 
     static func == (lhs: LeicaStyle, rhs: LeicaStyle) -> Bool { lhs.id == rhs.id }
 }

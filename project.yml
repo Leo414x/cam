@@ -20,6 +20,8 @@ targets:
     platform: iOS
     sources:
       - path: LeicaCam
+        excludes:
+          - "**/*.md"   # docs in Resources/ must not be bundled (name collisions)
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.leica.cam.LeicaCam

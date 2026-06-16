@@ -80,11 +80,21 @@ Implemented:
   `AVCaptureVideoDataOutput` → Core Image → Metal, photo capture via
   `AVCapturePhotoOutput` (HEIF w/ JPEG fallback), permissions + error states,
   exposure compensation (−3…+3 EV, ⅓-stop, swipe), tap-to-focus, ISO readout.
-- Pipeline: 8-step capture chain + lighter live-preview subset. Procedural 3D
-  LUTs for 3 styles; real `.cube` loader present. Filters: warm WB,
-  micro-contrast (unsharp/clarity), highlight rolloff, luminance-masked split
-  toning, highlight-aware film grain, vignette, weighted-luminance monochrome.
-- Styles: Classic / Monochrom / Contemporary.
+- Pipeline (integrated from `leica-color-params-for-cc.md`):
+  - **Color is baked into a procedural 33³ 3D LUT** (`LUTFilter.generateLeicaLUT`):
+    camera calibration → 8-band HSL shifts (smooth band crossfade) → global
+    saturation compression → split toning → monotone-cubic (Fritsch–Carlson)
+    tone curve; monochrome styles use a weighted B&W conversion before the curve.
+    Cached per `style.id`. Real `.cube` loader still present.
+  - **Spatial filters after the LUT** (`LeicaFilters`): Kelvin white-balance,
+    luminance-weighted micro-contrast (clarity), highlight halation (bloom),
+    highlight-aware film grain, natural vignette — each with per-style params
+    (`MicroContrastParams` / `GrainParams` / `VignetteParams` / `HalationParams`).
+  - Order (capture): WB → LUT → micro-contrast → halation → grain → vignette.
+    Preview: LUT + vignette only (real-time).
+- Styles (5): Classic / Contemporary / Natural / Vivid / Monochrom.
+  Defined as `LeicaStyle` presets in `StyleLibrary.swift`; HSL tables there too.
+  Color math validated numerically (HSL round-trip, monotone in-range tone curve).
 - UI: viewfinder, style pills, rule-of-thirds grid, focus reticle, shutter
   (haptic + flash), review screen (save/discard, hold-to-compare, watermark
   toggle), Photos saving (add-only), optional "save original" toggle.

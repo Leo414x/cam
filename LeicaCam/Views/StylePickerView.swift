@@ -23,7 +23,7 @@ struct StylePickerView: View {
     private func pill(for style: LeicaStyle) -> some View {
         let isSelected = style == selected
         VStack(spacing: 6) {
-            Text(style.displayName)
+            Text(style.name)
                 .font(LeicaTheme.label(15))
                 .tracking(0.5)
                 .foregroundColor(isSelected ? LeicaTheme.primaryText : LeicaTheme.dimText)
