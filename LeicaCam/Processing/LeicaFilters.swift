@@ -78,22 +78,44 @@ enum LeicaFilters {
         return f.outputImage ?? image
     }
 
-    /// Micro-contrast / clarity, luminance-weighted (full only in midtones).
+    /// Reference long edge the base radii were tuned against. Radii are scaled
+    /// to the actual image size so the clarity acts on the same physical scale
+    /// in the (downsampled) preview and the full-res capture — keeping the two
+    /// visually identical and making the effect resolution-independent.
+    private static let referenceLongEdge: CGFloat = 1440
+
+    /// Multi-scale micro-contrast / clarity, luminance-weighted (full only in
+    /// midtones). Spreads the strength across three resolution-scaled frequency
+    /// bands (fine / mid / coarse) for Lightroom-like depth without one harsh band.
     static func microContrast(_ image: CIImage, params: MicroContrastParams) -> CIImage {
         guard params.alpha > 0 else { return image }
+        let extent = image.extent
+        guard !extent.isInfinite, !extent.isEmpty else { return image }
 
-        // Unsharp mask = original + alpha·(original − gaussianBlur).
-        let unsharp = CIFilter.unsharpMask()
-        unsharp.inputImage = image
-        unsharp.radius = params.blurRadius
-        unsharp.intensity = params.alpha
-        guard let sharp = unsharp.outputImage else { return image }
+        // Scale the base radius to this image's resolution (ref = 1440 long edge).
+        let longEdge = max(extent.width, extent.height)
+        let scaledBase = params.blurRadius * Float(longEdge / referenceLongEdge)
+
+        // Three scales; weights sum to 1 so overall strength stays ~params.alpha.
+        let bands: [(mult: Float, weight: Float)] = [
+            (0.5, 0.5),   // fine detail
+            (1.0, 0.3),   // mid structure
+            (2.0, 0.2),   // coarse / "3D pop"
+        ]
+        var sharp = image
+        for band in bands {
+            let usm = CIFilter.unsharpMask()
+            usm.inputImage = sharp
+            usm.radius = max(0.5, scaledBase * band.mult)   // radius must be > 0
+            usm.intensity = params.alpha * band.weight
+            sharp = usm.outputImage ?? sharp
+        }
 
         // Luminance-zone mask: ~full in mids, reduced in highlights/shadows.
         let luma = CIFilter.colorControls()
         luma.inputImage = image
         luma.saturation = 0
-        guard let lumaImg = luma.outputImage else { return sharp }
+        guard let lumaImg = luma.outputImage else { return sharp.cropped(to: extent) }
 
         let weight = CIFilter.toneCurve()
         weight.inputImage = lumaImg
@@ -102,13 +124,13 @@ enum LeicaFilters {
         weight.point2 = CGPoint(x: 0.50, y: 1.00)
         weight.point3 = CGPoint(x: 0.75, y: 1.00)
         weight.point4 = CGPoint(x: 1.00, y: 0.40)   // highlights: −60%
-        guard let mask = weight.outputImage else { return sharp }
+        guard let mask = weight.outputImage else { return sharp.cropped(to: extent) }
 
         let blend = CIFilter.blendWithMask()
         blend.inputImage = sharp
         blend.backgroundImage = image
         blend.maskImage = mask
-        return blend.outputImage?.cropped(to: image.extent) ?? sharp
+        return blend.outputImage?.cropped(to: extent) ?? sharp.cropped(to: extent)
     }
 
     /// Highlight halation: isolate highlights → blur → warm tint → screen blend.

@@ -100,7 +100,12 @@ Implemented:
     highlight-aware film grain, natural vignette — each with per-style params
     (`MicroContrastParams` / `GrainParams` / `VignetteParams` / `HalationParams`).
   - Order (capture): WB → LUT → micro-contrast → halation → grain → vignette.
-    Preview: LUT + vignette only (real-time).
+    Preview: LUT → micro-contrast → vignette (micro-contrast runs in preview too
+    now, for WYSIWYG; halation/grain still capture-only).
+  - micro-contrast is **multi-scale** (3 bands: fine/mid/coarse) with radii
+    **scaled to the image long edge** (ref 1440 in `LeicaFilters`), so it is
+    resolution-independent and preview matches capture. alpha lowered to ~60%
+    of the original fitted values to avoid over-sharpening.
 - Styles (5 Leica): Classic / Contemporary / Natural / Vivid / Monochrom.
   Defined as `LeicaStyle` presets in `StyleLibrary.swift`; HSL tables there too.
   Color math validated numerically (HSL round-trip, monotone in-range tone curve).

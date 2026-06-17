@@ -41,12 +41,13 @@ final class ImagePipeline {
         LUTFilter.procedural(for: style)
     }
 
-    /// Live preview: LUT + vignette only. The LUT alone carries the bulk of the
-    /// visual character at preview resolution; micro-contrast, halation and
-    /// grain are skipped to hold frame rate.
+    /// Live preview: LUT → micro-contrast → vignette. micro-contrast now runs in
+    /// preview too (with the same resolution-scaled radii) so the preview matches
+    /// the capture. Halation and grain are still skipped to hold frame rate.
     private func processLeicaPreview(_ input: CIImage, style: LeicaStyle) -> CIImage {
         var image = input
         image = lut(for: style).apply(to: image)                 // 3D LUT color grading
+        image = LeicaFilters.microContrast(image, params: style.microContrast)
         image = LeicaFilters.vignette(image, params: style.vignette)
         return image.cropped(to: input.extent)
     }
