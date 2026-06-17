@@ -20,7 +20,7 @@ final class CameraService: NSObject, ObservableObject {
 
     // MARK: - Published UI state
     @Published var state: CameraState = .unconfigured
-    @Published var selectedStyle: LeicaStyle = StyleLibrary.default
+    @Published var selectedStyle: AppStyle = AppStyleLibrary.default
     @Published var exposureBias: Float = 0.0          // EV, -3...3
     @Published var iso: Float = 0
     @Published var focusIndicator: CGPoint? = nil      // normalized view point
@@ -254,7 +254,7 @@ extension CameraService: AVCaptureVideoDataOutputSampleBufferDelegate {
     }
 
     /// Read the selected style without hopping to the main queue per frame.
-    private var currentStyleSnapshot: LeicaStyle {
+    private var currentStyleSnapshot: AppStyle {
         // `selectedStyle` is a value type; reading is safe enough for preview.
         selectedStyle
     }

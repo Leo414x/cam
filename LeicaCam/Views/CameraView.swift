@@ -38,7 +38,7 @@ struct CameraView: View {
         VStack(spacing: 0) {
             viewfinder
             readoutBar
-            StylePickerView(styles: StyleLibrary.all,
+            StylePickerView(styles: AppStyleLibrary.all,
                             selected: $camera.selectedStyle,
                             onSelect: { _ in HapticsManager.shared.selectionChanged() })
                 .padding(.vertical, 10)

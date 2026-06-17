@@ -14,7 +14,7 @@ final class PhotoCaptureProcessor: NSObject, AVCapturePhotoCaptureDelegate {
         case failure(String)
     }
 
-    private let style: LeicaStyle
+    private let style: AppStyle
     private let pipeline: ImagePipeline
     private let context: CIContext
     private let saveOriginal: Bool
@@ -25,7 +25,7 @@ final class PhotoCaptureProcessor: NSObject, AVCapturePhotoCaptureDelegate {
     /// the owner can release this processor.
     var onFinished: ((Int64) -> Void)?
 
-    init(style: LeicaStyle,
+    init(style: AppStyle,
          pipeline: ImagePipeline,
          context: CIContext,
          saveOriginal: Bool,

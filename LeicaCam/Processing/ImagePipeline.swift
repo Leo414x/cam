@@ -1,28 +1,59 @@
 import CoreImage
 
-/// Orchestrates the Leica filter chain. The 3D LUT carries all per-pixel color
-/// math (calibration → HSL → saturation → split tone → tone curve, or the
-/// monochrome conversion); the spatial filters run after it.
+/// Orchestrates the filter chain for the selected style. Leica styles use a
+/// procedural cube plus spatial filters; Dazz styles use a single bundled LUT.
+/// The `AppStyle` switch keeps both paths separate while the camera and UI treat
+/// styles uniformly.
 final class ImagePipeline {
+
+    // MARK: - Entry points (dispatch on style kind)
+
+    /// Live preview (real-time).
+    func processPreview(_ input: CIImage, style: AppStyle) -> CIImage {
+        switch style {
+        case .leica(let s): return processLeicaPreview(input, style: s)
+        case .dazz(let s):  return processDazz(input, style: s)
+        }
+    }
+
+    /// Full-quality capture path.
+    func processCapture(_ input: CIImage, style: AppStyle) -> CIImage {
+        switch style {
+        case .leica(let s): return processLeicaCapture(input, style: s)
+        case .dazz(let s):  return processDazz(input, style: s)
+        }
+    }
+
+    // MARK: - Dazz (single bundled LUT)
+
+    /// Preview and export use the SAME path: just the LUT (cube data is cached).
+    private func processDazz(_ input: CIImage, style: DazzSingleLUTStyle) -> CIImage {
+        guard let out = try? DazzLUTFilter.shared.applyDazzLUT(input, style: style, intensity: 1.0) else {
+            return input   // never produce blank output on failure
+        }
+        return out.cropped(to: input.extent)
+    }
+
+    // MARK: - Leica (procedural cube + spatial filters)
 
     /// Procedural LUTs are cached by style id inside `LUTFilter`.
     private func lut(for style: LeicaStyle) -> LUTFilter {
         LUTFilter.procedural(for: style)
     }
 
-    /// Live preview (real-time): LUT + vignette only. The LUT alone carries the
-    /// bulk of the visual character at preview resolution; micro-contrast,
-    /// halation and grain are skipped to hold frame rate.
-    func processPreview(_ input: CIImage, style: LeicaStyle) -> CIImage {
+    /// Live preview: LUT + vignette only. The LUT alone carries the bulk of the
+    /// visual character at preview resolution; micro-contrast, halation and
+    /// grain are skipped to hold frame rate.
+    private func processLeicaPreview(_ input: CIImage, style: LeicaStyle) -> CIImage {
         var image = input
         image = lut(for: style).apply(to: image)                 // 3D LUT color grading
         image = LeicaFilters.vignette(image, params: style.vignette)
         return image.cropped(to: input.extent)
     }
 
-    /// Full-quality capture path (per the spec's processing order):
+    /// Full-quality capture (per the spec's processing order):
     /// WB shift → LUT → micro-contrast → halation → grain → vignette → output.
-    func processCapture(_ input: CIImage, style: LeicaStyle) -> CIImage {
+    private func processLeicaCapture(_ input: CIImage, style: LeicaStyle) -> CIImage {
         var image = input
         image = LeicaFilters.whiteBalance(image, kelvinShift: style.whiteBalanceShiftKelvin)
         image = lut(for: style).apply(to: image)

@@ -101,9 +101,27 @@ Implemented:
     (`MicroContrastParams` / `GrainParams` / `VignetteParams` / `HalationParams`).
   - Order (capture): WB → LUT → micro-contrast → halation → grain → vignette.
     Preview: LUT + vignette only (real-time).
-- Styles (5): Classic / Contemporary / Natural / Vivid / Monochrom.
+- Styles (5 Leica): Classic / Contemporary / Natural / Vivid / Monochrom.
   Defined as `LeicaStyle` presets in `StyleLibrary.swift`; HSL tables there too.
   Color math validated numerically (HSL round-trip, monotone in-range tone curve).
+- **Dazz LUT styles (1 so far): KJ · Kuji.** Separate LUT-based path that does
+  not touch the Leica styles:
+  - `AppStyle` enum (`.leica` / `.dazz`) is the unified selection type used by
+    the camera, picker and `ImagePipeline`. `AppStyleLibrary.all` = Leica then
+    Dazz; picker draws a divider before the Dazz section.
+  - `DazzSingleLUTStyle` (`Styles/DazzStyle.swift`) + `DazzLibrary.all`.
+  - `DazzLUTStripLoader` decodes a 256×16 Dazz strip (`x=b·16+r, y=g`) into a
+    16³ `CIColorCube` (can trilinearly resample to 33). `DazzLUTFilter` applies
+    it with `mix(original, lut, intensity)` and caches cube data by
+    `lutResourceName+cubeSize` (parsed once, not per frame). Preview and export
+    use the SAME path. LUT: `Resources/LUTs/Dazz/f_villau2z.png`.
+  - Only this one style is imported; the other ~128 are intentionally deferred.
+  - Decode validated against the asset (monotone neutral ramp, full luma range,
+    magenta-leaning mids matching KJ's fitted "magenta+darker" bias).
+  - **Asset rights caveat:** these LUTs were extracted from a third-party APK.
+    Before commercial distribution, confirm rights or replace with original
+    LUTs generated from the fitted parameters in
+    `dazz_style_parameters_translated.csv`.
 - UI: viewfinder, style pills, rule-of-thirds grid, focus reticle, shutter
   (haptic + flash), review screen (save/discard, hold-to-compare, watermark
   toggle), Photos saving (add-only), optional "save original" toggle.

@@ -1,16 +1,23 @@
 import SwiftUI
 
 /// Horizontal carousel of style pills below the viewfinder. Selecting a style
-/// updates the live preview in real time.
+/// updates the live preview in real time. Dazz LUT styles are grouped after the
+/// Leica styles, separated by a thin divider.
 struct StylePickerView: View {
-    let styles: [LeicaStyle]
-    @Binding var selected: LeicaStyle
-    var onSelect: (LeicaStyle) -> Void
+    let styles: [AppStyle]
+    @Binding var selected: AppStyle
+    var onSelect: (AppStyle) -> Void
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 26) {
-                ForEach(styles) { style in
+                ForEach(Array(styles.enumerated()), id: \.element.id) { index, style in
+                    // Divider where the Dazz section begins.
+                    if style.isDazz, index > 0, !styles[index - 1].isDazz {
+                        Rectangle()
+                            .fill(LeicaTheme.dimText.opacity(0.4))
+                            .frame(width: 1, height: 20)
+                    }
                     pill(for: style)
                 }
             }
@@ -20,7 +27,7 @@ struct StylePickerView: View {
     }
 
     @ViewBuilder
-    private func pill(for style: LeicaStyle) -> some View {
+    private func pill(for style: AppStyle) -> some View {
         let isSelected = style == selected
         VStack(spacing: 6) {
             Text(style.name)
