@@ -11,11 +11,13 @@ struct MicroContrastParams {
     let clampMin: Float
     let clampMax: Float
 
-    static let classic      = MicroContrastParams(blurRadius: 20, alpha: 0.40, clampMin: -0.15, clampMax: 0.15)
-    static let contemporary = MicroContrastParams(blurRadius: 18, alpha: 0.30, clampMin: -0.12, clampMax: 0.12)
-    static let natural      = MicroContrastParams(blurRadius: 16, alpha: 0.20, clampMin: -0.10, clampMax: 0.10)
-    static let vivid        = MicroContrastParams(blurRadius: 22, alpha: 0.45, clampMin: -0.18, clampMax: 0.18)
-    static let monochrom    = MicroContrastParams(blurRadius: 22, alpha: 0.50, clampMin: -0.20, clampMax: 0.20)
+    // alpha = micro-contrast (clarity) strength. Lowered uniformly to ~60% of
+    // the original fitted values to tame over-sharpening on full-res captures.
+    static let classic      = MicroContrastParams(blurRadius: 20, alpha: 0.24, clampMin: -0.15, clampMax: 0.15)
+    static let contemporary = MicroContrastParams(blurRadius: 18, alpha: 0.18, clampMin: -0.12, clampMax: 0.12)
+    static let natural      = MicroContrastParams(blurRadius: 16, alpha: 0.12, clampMin: -0.10, clampMax: 0.10)
+    static let vivid        = MicroContrastParams(blurRadius: 22, alpha: 0.27, clampMin: -0.18, clampMax: 0.18)
+    static let monochrom    = MicroContrastParams(blurRadius: 22, alpha: 0.30, clampMin: -0.20, clampMax: 0.20)
 }
 
 /// Film grain: luminance noise that fades out in the highlights.
