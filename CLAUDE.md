@@ -127,6 +127,36 @@ Implemented:
     Before commercial distribution, confirm rights or replace with original
     LUTs generated from the fitted parameters in
     `dazz_style_parameters_translated.csv`.
+- **Dazz Retro Polaroid pack (8 presets: PO1–PO8).** A full multi-layer effect
+  pack (not just a LUT), separate from the Kuji strip path:
+  - `AppStyle.dazzRetro(DazzRetroPolaroidPreset)`; presets in
+    `Styles/DazzRetroPolaroid.swift` (`DazzRetroLibrary.all`), built from
+    `polaroid_full_manifest.json` defaults. Models: `DazzRetroPolaroidPreset`
+    (id/code/name/lut + `style` + `textures`), `DazzRetroStyleAdjustments`,
+    `DazzRetroTextureSettings`.
+  - **`DazzRetro512LookupLoader`** decodes a **512×512** 8×8-tile GPUImage atlas
+    (`blue→tile, red→x, green→y`) into a `CIColorCube` (size 33, trilinear) — a
+    SEPARATE loader from the 256×16 `DazzLUTStripLoader`. `DazzRetroLUTFilter`
+    caches cube data by `resourceName+cubeSize`.
+  - **`DazzRetroProcessor`** runs the full chain: LUT → style (exposure, WB
+    temp/tint, brightness/contrast/saturation, shadows/highlights, sharpen) →
+    textures (dust=colorDodge, light leak=lighten, procedural vignette, grain).
+    `applyStyle`/`applyTextures` flags allow LUT-only A/B. Texture CIImages
+    cached. Frame/mask is modeled but **deferred** (no frame compositing path).
+  - Same `process()` call for preview and export (parity). Pipeline routes
+    `.dazzRetro` in `ImagePipeline` for both paths.
+  - UI: PO1–PO8 pills in a third picker section (divider by `AppStyle.groupKey`);
+    `DazzRetroEditPanel` (sliders: LUT intensity, brightness, contrast,
+    saturation, sharpen, temp, tint, vignette, grain, dust, light leak; edits
+    mutate the selected preset live) opened by the slider button; and
+    `DazzRetroDemoView` (8 presets applied to a bundled sample, full-vs-LUT-only
+    toggle) opened by the grid button — both in the readout bar.
+  - Param ranges follow `style_parameter_defaults_v3_2_2.csv` (note: wb tint
+    baseline is **1**, not 0). Bundled: 8 LUTs (`Resources/LUTs/Dazz/Polaroid`),
+    dust_1–8 + leak_1–8 (`Resources/Textures/...`), `sample_polaroid_origin.jpg`.
+  - Verified headlessly (Core Image on macOS) against the real assets: 8 LUTs
+    decode non-blank and differ; full pipeline yields 8 visibly distinct
+    polaroid renders. Same third-party-APK asset-rights caveat applies.
 - UI: viewfinder, style pills, rule-of-thirds grid, focus reticle, shutter
   (haptic + flash), review screen (save/discard, hold-to-compare, watermark
   toggle), Photos saving (add-only), optional "save original" toggle.

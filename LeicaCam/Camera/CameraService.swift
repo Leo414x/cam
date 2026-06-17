@@ -21,6 +21,19 @@ final class CameraService: NSObject, ObservableObject {
     // MARK: - Published UI state
     @Published var state: CameraState = .unconfigured
     @Published var selectedStyle: AppStyle = AppStyleLibrary.default
+
+    /// Editable view onto the selected Polaroid preset (nil if a non-Polaroid
+    /// style is selected). Writing republishes `selectedStyle`, so live preview
+    /// reflects slider edits immediately.
+    var selectedPolaroid: DazzRetroPolaroidPreset? {
+        get {
+            if case .dazzRetro(let p) = selectedStyle { return p }
+            return nil
+        }
+        set {
+            if let v = newValue { selectedStyle = .dazzRetro(v) }
+        }
+    }
     @Published var exposureBias: Float = 0.0          // EV, -3...3
     @Published var iso: Float = 0
     @Published var focusIndicator: CGPoint? = nil      // normalized view point

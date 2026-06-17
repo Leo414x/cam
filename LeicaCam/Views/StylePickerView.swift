@@ -12,8 +12,8 @@ struct StylePickerView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 26) {
                 ForEach(Array(styles.enumerated()), id: \.element.id) { index, style in
-                    // Divider where the Dazz section begins.
-                    if style.isDazz, index > 0, !styles[index - 1].isDazz {
+                    // Divider whenever the section (Leica / Dazz / Polaroid) changes.
+                    if index > 0, styles[index - 1].groupKey != style.groupKey {
                         Rectangle()
                             .fill(LeicaTheme.dimText.opacity(0.4))
                             .frame(width: 1, height: 20)

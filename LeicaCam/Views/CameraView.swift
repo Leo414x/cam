@@ -3,6 +3,8 @@ import SwiftUI
 /// Main viewfinder screen.
 struct CameraView: View {
     @StateObject private var camera = CameraService()
+    @State private var showDemo = false
+    @State private var showEdit = false
 
     var body: some View {
         ZStack {
@@ -30,6 +32,8 @@ struct CameraView: View {
                 onDiscard: { camera.captured = nil }
             )
         }
+        .sheet(isPresented: $showDemo) { DazzRetroDemoView() }
+        .sheet(isPresented: $showEdit) { DazzRetroEditPanel(camera: camera) }
     }
 
     // MARK: - Main layout
@@ -77,8 +81,19 @@ struct CameraView: View {
             Text(String(format: "EV %+.1f", camera.exposureBias))
             Text(String(format: "ISO %.0f", camera.iso))
             Spacer()
+            // Polaroid edit panel (only when a PO style is selected).
+            Button { showEdit = true } label: {
+                Image(systemName: "slider.horizontal.3")
+                    .foregroundColor(camera.selectedPolaroid != nil ? LeicaTheme.primaryText : LeicaTheme.dimText)
+            }
+            .disabled(camera.selectedPolaroid == nil)
+            // Polaroid demo / verification grid.
+            Button { showDemo = true } label: {
+                Image(systemName: "square.grid.2x2")
+                    .foregroundColor(LeicaTheme.dimText)
+            }
             Button { camera.showGrid.toggle() } label: {
-                Image(systemName: camera.showGrid ? "grid" : "grid")
+                Image(systemName: "grid")
                     .foregroundColor(camera.showGrid ? LeicaTheme.primaryText : LeicaTheme.dimText)
             }
         }

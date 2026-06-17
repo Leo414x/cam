@@ -11,16 +11,19 @@ final class ImagePipeline {
     /// Live preview (real-time).
     func processPreview(_ input: CIImage, style: AppStyle) -> CIImage {
         switch style {
-        case .leica(let s): return processLeicaPreview(input, style: s)
-        case .dazz(let s):  return processDazz(input, style: s)
+        case .leica(let s):     return processLeicaPreview(input, style: s)
+        case .dazz(let s):      return processDazz(input, style: s)
+        case .dazzRetro(let p): return DazzRetroProcessor.shared.process(input, preset: p)
         }
     }
 
     /// Full-quality capture path.
     func processCapture(_ input: CIImage, style: AppStyle) -> CIImage {
         switch style {
-        case .leica(let s): return processLeicaCapture(input, style: s)
-        case .dazz(let s):  return processDazz(input, style: s)
+        case .leica(let s):     return processLeicaCapture(input, style: s)
+        case .dazz(let s):      return processDazz(input, style: s)
+        // Polaroid uses the SAME full chain for preview and export (parity).
+        case .dazzRetro(let p): return DazzRetroProcessor.shared.process(input, preset: p)
         }
     }
 
